@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">ColorObjectDetect</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_devices_list">Devices_list</string>
+    <string name="choose_device">Choose device</string>
+
+</resources>

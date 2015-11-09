@@ -9,11 +9,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 public class Menu_activity extends AppCompatActivity {
 
-    ImageView tracker;
+    ImageView start, about;
     Context context;
 
     @Override
@@ -21,25 +20,21 @@ public class Menu_activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_layout);
 
-        tracker = (ImageView)findViewById(R.id.imageView1);
-        TextView about = (TextView)findViewById(R.id.textView1);
+        about = (ImageView) findViewById(R.id.aboutButton);
+        start = (ImageView)findViewById(R.id.connectButton);
 
-        View.OnClickListener A = new View.OnClickListener() {
-
+        start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 context = getApplicationContext();
                 Intent intent = new Intent(context, Devices_list.class);
                 startActivity(intent);
             }
-        };
-        tracker.setOnClickListener(A);
-
-        View.OnClickListener B = new View.OnClickListener() {
-
+        });
+;
+        about.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 AlertDialog alertDialog = new AlertDialog.Builder(Menu_activity.this).create();
                 alertDialog.setTitle("About this app");
                 alertDialog.setMessage("C by Nikodem Bartnik \n"
@@ -67,7 +62,6 @@ public class Menu_activity extends AppCompatActivity {
 
                 alertDialog.show();
             }
-        };
-        about.setOnClickListener(B);
+        });
     }
 }

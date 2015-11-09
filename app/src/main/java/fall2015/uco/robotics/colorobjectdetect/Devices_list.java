@@ -45,7 +45,9 @@ public class Devices_list extends Activity {
 
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
-                mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                if(device.getName().contains("NXT")){
+                    mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                }
             }
         } else {
             mPairedDevicesArrayAdapter.add("no devices paired");

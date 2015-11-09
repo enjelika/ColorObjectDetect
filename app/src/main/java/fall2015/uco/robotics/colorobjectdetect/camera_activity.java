@@ -25,17 +25,20 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 //import android.content.Intent;
-import android.graphics.Bitmap;
+ import android.content.Intent;
+ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 //import android.os.Handler;
-import android.util.Log;
+ import android.os.Handler;
+ import android.os.Message;
+ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
- public class camera_activity extends Activity implements CvCameraViewListener2 {  
+public class camera_activity extends Activity implements CvCameraViewListener2 {
 
-//    int send;
+//   int send;
     private Mat mRgba;
     Bitmap bitmap;
     int x_center;
@@ -43,14 +46,8 @@ import android.widget.Toast;
     int points;
    
   	private BluetoothAdapter mBluetoothAdapter = null;
-  	private BluetoothSocket btSocket = null;
-  	private OutputStream outStream = null;
-  	private static String address;
-  	private static final UUID MY_UUID = UUID
-  			.fromString("00001101-0000-1000-8000-00805F9B34FB");
-//  	Handler handler = new Handler();
-//  	boolean stopWorker = false;
-//  	Intent i=new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+    private NXTBluetoothService mNXTService = null;
+  	private static String nxt;
 
     private CameraBridgeViewBase  mOpenCvCameraView;
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -79,11 +76,24 @@ import android.widget.Toast;
         mOpenCvCameraView.setMaxFrameSize(176, 144);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if(!mBluetoothAdapter.isEnabled()) {
+            mBluetoothAdapter.enable();
+            while(!(mBluetoothAdapter.isEnabled())) {
+                System.out.println("Trying to enable BlueTooth...");
+            }
+        }
      
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            address = extras.getString("address");
-            Connect();
+            nxt = extras.getString("address");
+            mNXTService = new NXTBluetoothService(mHandler);
+            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(nxt);
+            mNXTService.connect(device);
+        }
+        else{
+            Intent i = new Intent(camera_activity.this, Devices_list.class);
+            startActivity(i);
         }
     }
 
@@ -102,12 +112,6 @@ import android.widget.Toast;
 
     @Override
     public void onDestroy() {
-        try{
-            btSocket.close();
-        }catch(IOException e){
-            Log.d("DESTROY", e.getMessage());
-        }
-
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
 
         super.onDestroy();
@@ -159,16 +163,16 @@ import android.widget.Toast;
             x++;
             y = 0;
        }
-//
-//       y = 0;
-//       x = 0;
+
+       y = 0;
+       x = 0;
                    
        if(points > 200){
            x_center = all_x / points;
            y_center = all_y / points;
 
            Point center= new Point(x_center, y_center);
-           Imgproc.ellipse(mRgba, center, new Size(20, 20), 0, 0, 360, new Scalar(255, 0, 0), 4, 8, 0);
+           //Imgproc.ellipse(mRgba, center, new Size(20, 20), 0, 0, 360, new Scalar(255, 0, 0), 4, 8, 0);
 
            int direction = 0;
 
@@ -188,7 +192,7 @@ import android.widget.Toast;
                	   direction = 2;
            }
 
-           writeData("x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
+//           writeData("x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
            Log.d("points", Integer.toString(points));
 
            points = 0;
@@ -198,6 +202,61 @@ import android.widget.Toast;
        return mRgba;
    }
 
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case Constants.MESSAGE_STATE_CHANGE:
+                    switch (msg.arg1) {
+                        case NXTBluetoothService.STATE_CONNECTED:
+                            setTitle("STATUS: Connected");
+                            break;
+                        case NXTBluetoothService.STATE_CONNECTING:
+                            setTitle("STATUS: Waiting...");
+                            break;
+                        case NXTBluetoothService.STATE_LISTEN:
+                            break;
+                        case NXTBluetoothService.STATE_NONE:
+                            setTitle("STATUS: Disconnected");
+                            break;
+                    }
+                    break;
+
+                case Constants.MESSAGE_WRITE:
+                    break;
+
+                case Constants.MESSAGE_READ:
+                    /**
+                     * Gets int value of message from NXT that is passed from NXTBluetoothService
+                     */
+                    int message = msg.arg1;
+                    /**
+                     * TODO: add cases for each message to perform tasks
+                     */
+                    switch(message){
+                        default:
+                            Toast.makeText(camera_activity.this, "Message received int = " + Integer.toString(message), Toast.LENGTH_LONG).show();
+                    }
+                    break;
+
+                case Constants.MESSAGE_DEVICE_NAME:
+                    Toast.makeText(camera_activity.this, "Connected to NXT", Toast.LENGTH_SHORT).show();
+                    break;
+
+                case Constants.MESSAGE_TOAST:
+                    if(msg.getData().getString(Constants.TOAST) == "Unable to connect device"){
+                        Intent i = new Intent(camera_activity.this, Devices_list.class);
+                        startActivity(i);
+                    }else if(msg.getData().getString(Constants.TOAST) == "Device connection was lost"){
+                        Intent i = new Intent(camera_activity.this, Devices_list.class);
+                        startActivity(i);
+                    }
+                    Toast.makeText(camera_activity.this, msg.getData().getString(Constants.TOAST), Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
+
 //   private void CheckBt() {
 //       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 //
@@ -206,49 +265,49 @@ import android.widget.Toast;
 //       if (mBluetoothAdapter == null) {}
 //    }
 
-    public void Connect() {
+//    public void Connect() {
+//
+//	   if(mBluetoothAdapter.isEnabled()){
+//			BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+//			Toast.makeText(getApplicationContext(), "Connecting...", Toast.LENGTH_LONG).show();
+//			mBluetoothAdapter.cancelDiscovery();
+//
+//			try {
+//				btSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
+//				btSocket.connect();
+//
+//				Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_SHORT).show();
+//
+//			} catch (IOException e) {
+//				try {
+//					btSocket.close();
+//				} catch (IOException e2) {
+//					Toast.makeText(getApplicationContext(), "Failed", Toast.LENGTH_SHORT).show();
+//				}
+//			}
+//	   }
+//	   else {
+//		   Toast.makeText(getApplicationContext(), "Bluetooth is disabled", Toast.LENGTH_SHORT).show();
+//	   }
+//	}
 
-	   if(mBluetoothAdapter.isEnabled()){
-			BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-			Toast.makeText(getApplicationContext(), "Connecting...", Toast.LENGTH_LONG).show();
-			mBluetoothAdapter.cancelDiscovery();
-
-			try {
-				btSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
-				btSocket.connect();
-
-				Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_SHORT).show();
-
-			} catch (IOException e) {
-				try {
-					btSocket.close();
-				} catch (IOException e2) {
-					Toast.makeText(getApplicationContext(), "Failed", Toast.LENGTH_SHORT).show();
-				}
-			}
-	   }
-	   else {
-		   Toast.makeText(getApplicationContext(), "Bluetooth is disabled", Toast.LENGTH_SHORT).show();
-	   }
-	}
-
-     private void writeData(String data) {
-
-	   if(mBluetoothAdapter.isEnabled()){
-			try {
-				outStream = btSocket.getOutputStream();
-			} catch (IOException e) {
-                Log.d("writeData", e.getMessage());
-			}
-
-			try {
-				outStream.write(data.getBytes());
-			} catch (IOException e) {
-				Log.d("writeData", e.getMessage());
-			}
-	   } else {
-           //Something...
-           Log.d("WDelse", "In else block within writeData...");
-	   }
-	}
+//     private void writeData(String data) {
+//
+//	   if(mBluetoothAdapter.isEnabled()){
+//			try {
+//				outStream = btSocket.getOutputStream();
+//			} catch (IOException e) {
+//                Log.d("writeData", e.getMessage());
+//			}
+//
+//			try {
+//				outStream.write(data.getBytes());
+//			} catch (IOException e) {
+//				Log.d("writeData", e.getMessage());
+//			}
+//	   } else {
+//           //Something...
+//           Log.d("WDelse", "In else block within writeData...");
+//	   }
+//	}
  }

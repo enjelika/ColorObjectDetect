@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -12,8 +11,8 @@ import android.widget.ImageView;
 
 public class Menu_activity extends AppCompatActivity {
 
-    ImageView start, about;
-    Context context;
+    private ImageView start, about;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,17 +36,16 @@ public class Menu_activity extends AppCompatActivity {
             public void onClick(View v) {
                 AlertDialog alertDialog = new AlertDialog.Builder(Menu_activity.this).create();
                 alertDialog.setTitle("About this app");
-                alertDialog.setMessage("C by Nikodem Bartnik \n"
-                        + "To make this application work you need to build robot with Arduino you can read about it by clicking 'OK' bellow. \n"
-                        + "If you like my project please vote for me in contest on instructables");
+                alertDialog.setMessage("NXT Color Object Detector by Debra H, Stan G, & Justin H \n"
+                        + "This Android application works with a Lego NXT Mindstorm robot \n"
+                        + "which needs to run the NXT side of this software.");
                 alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "OK",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
-                                Uri uri = Uri.parse("http://www.instructables.com/member/Nikus/");
-                                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                                startActivity(intent);
+//                                Uri uri = Uri.parse("http://www.instructables.com/member/Nikus/");
+//                                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                                startActivity(intent);
                             }
                         });
 
@@ -56,7 +54,6 @@ public class Menu_activity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
-
                             }
                         });
 

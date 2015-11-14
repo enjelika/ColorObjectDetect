@@ -1,8 +1,4 @@
 package fall2015.uco.robotics.colorobjectdetect;
- 
- import java.io.IOException;
-import java.io.OutputStream;
-import java.util.UUID;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -11,45 +7,37 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
- import org.opencv.imgproc.Imgproc;
 
- import android.app.Activity;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-//import android.content.Intent;
- import android.content.Intent;
- import android.graphics.Bitmap;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-//import android.os.Handler;
- import android.os.Handler;
- import android.os.Message;
- import android.util.Log;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
 public class camera_activity extends Activity implements CvCameraViewListener2 {
 
-//   int send;
     private Mat mRgba;
     Bitmap bitmap;
-    int x_center;
-    int y_center;
-    int points;
-   
-  	private BluetoothAdapter mBluetoothAdapter = null;
-    private NXTBluetoothService mNXTService = null;
-  	private static String nxt;
+    int x_center, y_center, points;
 
-    private CameraBridgeViewBase  mOpenCvCameraView;
+    private BluetoothAdapter mBluetoothAdapter = null;
+    private NXTBluetoothService mNXTService = null;
+    private static String nxt;
+
+    private byte message = 0;
+
+    private CameraBridgeViewBase mOpenCvCameraView;
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -63,27 +51,28 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
             }
         }
     };
-   
-    public camera_activity() {}
+
+    public camera_activity() {
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    
+
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.surface_view);
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial2_activity_surface_view);
-        mOpenCvCameraView.setMaxFrameSize(176, 144);
+        mOpenCvCameraView.setMaxFrameSize(200, 144); //Original setting: (176, 144)
         mOpenCvCameraView.setCvCameraViewListener(this);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        if(!mBluetoothAdapter.isEnabled()) {
+        if (!mBluetoothAdapter.isEnabled()) {
             mBluetoothAdapter.enable();
-            while(!(mBluetoothAdapter.isEnabled())) {
+            while (!(mBluetoothAdapter.isEnabled())) {
                 System.out.println("Trying to enable BlueTooth...");
             }
         }
-     
+
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             nxt = extras.getString("address");
@@ -98,14 +87,14 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
-   
+
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
     }
@@ -113,7 +102,6 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
     @Override
     public void onDestroy() {
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
-
         super.onDestroy();
     }
 
@@ -134,8 +122,8 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         try {
             bitmap = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(mRgba, bitmap);
-        } catch (CvException e){
-       	    Log.d("Exception",e.getMessage());
+        } catch (CvException e) {
+            Log.d("Exception", e.getMessage());
         }
 
         int x = 0;
@@ -143,64 +131,78 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
 
         int all_x = 0;
         int all_y = 0;
-                    
-        while(x < 176) {
-            	  
-            while(y < 144){
+
+        while (x < 176) {
+            while (y < 144) {
                 int pixel = bitmap.getPixel(x, y);
                 int redValue = Color.red(pixel);
                 int blueValue = Color.blue(pixel);
                 int greenValue = Color.green(pixel);
 
-                if(redValue > 200 && blueValue < 70 && greenValue < 70){
-                	   points++;
-                	   all_x = all_x + x;
-                	   all_y = all_y + y;
+                if (redValue > 200 && blueValue < 70 && greenValue < 70) {
+                    points++;
+                    all_x = all_x + x;
+                    all_y = all_y + y;
                 }
-                   
                 y++;
             }
             x++;
             y = 0;
-       }
+        }
 
-       y = 0;
-       x = 0;
-                   
-       if(points > 200){
-           x_center = all_x / points;
-           y_center = all_y / points;
+        if (points > 200) {
+            x_center = all_x / points;
+            y_center = all_y / points;
 
-           Point center= new Point(x_center, y_center);
-           //Imgproc.ellipse(mRgba, center, new Size(20, 20), 0, 0, 360, new Scalar(255, 0, 0), 4, 8, 0);
+            Point center = new Point(x_center, y_center);
+            //Imgproc.ellipse(mRgba, center, new Size(20, 20), 0, 0, 360, new Scalar(255, 0, 0), 4, 8, 0);
 
-           int direction = 0;
+            int direction = 0;
 
-           /** MOVEMENT DIRECTIONS BASED ON VALUES FROM CAMERA FEED */
-           if(points < 7000){
-             	   //forward
-              	   direction = 1;
-           }
+            /** MOVEMENT DIRECTIONS BASED ON VALUES FROM CAMERA FEED */
+            if (points < 220) { //original: (points < 7000)
+                //forward
+                message = 19;
+                sendMessage(message);
+                Log.d("MOVE", "forward");
+                //Log.d()
+            }
 
-           if(points > 7800 && points < 17200){
-                	   //stop
-                	   direction = 0;
-           }
+            if (points > 240 && points < 290 || points == 0) { //original: (points > 7800 && points < 17200)
+                //stop
+                message = 29;
+                sendMessage(message);
+                Log.d("MOVE", "stop");
+            }
 
-           if(points > 18000){
-             	   //back
-               	   direction = 2;
-           }
+            if (points > 300) { //original: (points < 18000)
+                //back
+                message = 39;
+                sendMessage(message);
+                Log.d("MOVE", "back");
+            }
 
-//           writeData("x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
-           Log.d("points", Integer.toString(points));
+            Log.d("X/Y", "x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
+            Log.d("POINTS", Integer.toString(points));
 
-           points = 0;
-//           all_x = 0;
-//           all_y = 0;
-       }
-       return mRgba;
-   }
+            points = 0;
+        }
+        return mRgba;
+    }
+
+    /**
+     * Sends a message.
+     *
+     * @param message A string of text to send.
+     */
+    private void sendMessage(byte message) {
+        // Check that we're actually connected before trying anything
+        if (mNXTService.getState() != NXTBluetoothService.STATE_CONNECTED) {
+            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mNXTService.write(message);
+    }
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -233,7 +235,7 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
                     /**
                      * TODO: add cases for each message to perform tasks
                      */
-                    switch(message){
+                    switch (message) {
                         default:
                             Toast.makeText(camera_activity.this, "Message received int = " + Integer.toString(message), Toast.LENGTH_LONG).show();
                     }
@@ -256,58 +258,4 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
             }
         }
     };
-
-//   private void CheckBt() {
-//       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//
-//       if (!mBluetoothAdapter.isEnabled()) startActivity(i);
-//
-//       if (mBluetoothAdapter == null) {}
-//    }
-
-//    public void Connect() {
-//
-//	   if(mBluetoothAdapter.isEnabled()){
-//			BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-//			Toast.makeText(getApplicationContext(), "Connecting...", Toast.LENGTH_LONG).show();
-//			mBluetoothAdapter.cancelDiscovery();
-//
-//			try {
-//				btSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
-//				btSocket.connect();
-//
-//				Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_SHORT).show();
-//
-//			} catch (IOException e) {
-//				try {
-//					btSocket.close();
-//				} catch (IOException e2) {
-//					Toast.makeText(getApplicationContext(), "Failed", Toast.LENGTH_SHORT).show();
-//				}
-//			}
-//	   }
-//	   else {
-//		   Toast.makeText(getApplicationContext(), "Bluetooth is disabled", Toast.LENGTH_SHORT).show();
-//	   }
-//	}
-
-//     private void writeData(String data) {
-//
-//	   if(mBluetoothAdapter.isEnabled()){
-//			try {
-//				outStream = btSocket.getOutputStream();
-//			} catch (IOException e) {
-//                Log.d("writeData", e.getMessage());
-//			}
-//
-//			try {
-//				outStream.write(data.getBytes());
-//			} catch (IOException e) {
-//				Log.d("writeData", e.getMessage());
-//			}
-//	   } else {
-//           //Something...
-//           Log.d("WDelse", "In else block within writeData...");
-//	   }
-//	}
- }
+}

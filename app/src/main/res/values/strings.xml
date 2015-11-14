@@ -6,4 +6,12 @@
     <string name="title_activity_devices_list">Devices_list</string>
     <string name="choose_device">Choose device</string>
 
+    //Strings for app use
+    <string name="status">STATUS&#58;</string>
+    <string name="idle">NOT CONNECTED</string>
+    <string name="error_conn">DEVICE NOT FOUND OR CANNOT CONNECT</string>
+    <string name="waiting">WAITING&#46;&#46;&#46;</string>
+    <string name="connected">CONNECTED</string>
+    <string name="disconnected">DISCONNECTED</string>
+    <string name="not_connected">Not Connected</string>
 </resources>

@@ -69,7 +69,7 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.surface_view);
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial2_activity_surface_view);
-        mOpenCvCameraView.setMaxFrameSize(200, 144); //Original setting: (176, 144)
+        mOpenCvCameraView.setMaxFrameSize(176, 144); //Original setting: (176, 144)
         mOpenCvCameraView.setCvCameraViewListener(this);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -83,9 +83,9 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             nxt = extras.getString("address");
-            mNXTService = new NXTBluetoothService(mHandler);
-            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(nxt);
-            mNXTService.connect(device);
+//            mNXTService = new NXTBluetoothService(mHandler);
+//            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(nxt);
+//            mNXTService.connect(device);
         }
         else{
             Intent i = new Intent(camera_activity.this, Devices_list.class);
@@ -139,6 +139,11 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         int all_x = 0;
         int all_y = 0;
 
+        int x_min = 176;
+        int x_max = 0;
+        int y_min = 144;
+        int y_max = 0;
+
         while (x < 176) {
             while (y < 144) {
                 int pixel = bitmap.getPixel(x, y);
@@ -146,11 +151,28 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
                 int blueValue = Color.blue(pixel);
                 int greenValue = Color.green(pixel);
 
-                if (redValue > 245 && blueValue < 243 && greenValue < 178) { // redValue > 200 && blueValue < 70 && greenValue < 70
+                if(x == (176/2)){
+                    if(y == (144/2)){
+                        Log.d("CenterColor", "R:" + redValue + ", G:" + greenValue + ", B:" + blueValue);
+                        bitmap.setPixel(x, y, Color.YELLOW);
+                    }
+                }
+                //if (redValue > 245 && blueValue < 243 && greenValue < 178) { // redValue > 200 && blueValue < 70 && greenValue < 70
+                if(checkColorRange(redValue, greenValue, blueValue)){
                     points++;
                     all_x = all_x + x;
                     all_y = all_y + y;
+                    if(x_min > x){ x_min = x; }
+                    if(x_max < x){ x_max = x; }
+                    if(y_min > y){ y_min = y; }
+                    if(y_max < y){ y_max = y; }
+                    //bitmap.setPixel(x, y, Color.CYAN);
+                }else{
+                    if(x != (176/2) && y != (144/2)){
+                        bitmap.setPixel(x, y, Color.BLACK);
+                    }
                 }
+
                 y++;
             }
             x++;
@@ -160,8 +182,13 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         if (points > 200) {
             x_center = all_x / points;
             y_center = all_y / points;
+            x_center = (x_max + x_min) / 2;
+            y_center = (y_max + y_min) / 2;
 
             Point center = new Point(x_center, y_center);
+
+            bitmap.setPixel(x_center, y_center, Color.CYAN);
+
             //Imgproc.ellipse(mRgba, center, new Size(20, 20), 0, 0, 360, new Scalar(255, 0, 0), 4, 8, 0);
 
             int direction = 0;
@@ -203,6 +230,8 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
 
             points = 0;
         }
+//        return mRgba;
+        Utils.bitmapToMat(bitmap, mRgba);
         return mRgba;
     }
 
@@ -223,6 +252,18 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
     private long getElapsedTime(){
         return LAST_TIME_MESSAGE_SENT - System.currentTimeMillis();
     }
+
+    private boolean checkColorRange(int r, int g, int b){
+        if(r > 220){
+            if(g < 40){
+                if(b > 220){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     private final Handler mHandler = new Handler() {
         @Override

@@ -37,6 +37,13 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
 
     private byte message = 0;
 
+    public static final int FORWARD = -1;
+    public static final int BACKWARD = -2;
+    public static final int STOPPED = -3;
+
+    int CURRENT_STATE = -3;
+    long LAST_TIME_MESSAGE_SENT = System.currentTimeMillis() + 500;
+
     private CameraBridgeViewBase mOpenCvCameraView;
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -162,33 +169,37 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
             /** MOVEMENT DIRECTIONS BASED ON VALUES FROM CAMERA FEED */
             if (points < 220) { //original: (points < 7000)
                 //forward
-                message = 19;
-                sendMessage(message);
-                Log.d("MOVE", "forward");
+                if(CURRENT_STATE != FORWARD &&  getElapsedTime() >= 500){
+                    message = 19;
+                    sendMessage(message);
+                    CURRENT_STATE = FORWARD;
+                    LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                    Log.d("MOVE", "forward");
+                }
             }
 
             if (points > 240 && points < 290 || points == 0) { //original: (points > 7800 && points < 17200)
                 //stop
-                message = 59;
-                sendMessage(message);
-                Log.d("MOVE", "stop");
+                if(CURRENT_STATE != STOPPED && getElapsedTime() >= 500){
+                    message = 59;
+                    sendMessage(message);
+                    CURRENT_STATE = STOPPED;
+                    Log.d("MOVE", "stop");
+                }
             }
 
             if (points > 300) { //original: (points < 18000)
                 //back
-                message = 29;
-                sendMessage(message);
-                Log.d("MOVE", "back");
+                if(CURRENT_STATE != BACKWARD && getElapsedTime() >= 500){
+                    message = 29;
+                    sendMessage(message);
+                    CURRENT_STATE = BACKWARD;
+                    Log.d("MOVE", "back");
+                }
             }
 
             Log.d("X/Y", "x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
             Log.d("POINTS", Integer.toString(points));
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
             points = 0;
         }
@@ -207,6 +218,10 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
             return;
         }
         mNXTService.write(message);
+    }
+
+    private long getElapsedTime(){
+        return LAST_TIME_MESSAGE_SENT - System.currentTimeMillis();
     }
 
     private final Handler mHandler = new Handler() {

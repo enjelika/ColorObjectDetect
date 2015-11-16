@@ -139,7 +139,7 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
                 int blueValue = Color.blue(pixel);
                 int greenValue = Color.green(pixel);
 
-                if (redValue > 200 && blueValue < 70 && greenValue < 70) {
+                if (redValue > 245 && blueValue < 243 && greenValue < 178) { // redValue > 200 && blueValue < 70 && greenValue < 70
                     points++;
                     all_x = all_x + x;
                     all_y = all_y + y;
@@ -165,25 +165,30 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
                 message = 19;
                 sendMessage(message);
                 Log.d("MOVE", "forward");
-                //Log.d()
             }
 
             if (points > 240 && points < 290 || points == 0) { //original: (points > 7800 && points < 17200)
                 //stop
-                message = 29;
+                message = 59;
                 sendMessage(message);
                 Log.d("MOVE", "stop");
             }
 
             if (points > 300) { //original: (points < 18000)
                 //back
-                message = 39;
+                message = 29;
                 sendMessage(message);
                 Log.d("MOVE", "back");
             }
 
             Log.d("X/Y", "x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
             Log.d("POINTS", Integer.toString(points));
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             points = 0;
         }

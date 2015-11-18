@@ -180,8 +180,8 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         }
 
         if (points > 200) {
-            x_center = all_x / points;
-            y_center = all_y / points;
+//            x_center = all_x / points;
+//            y_center = all_y / points;
             x_center = (x_max + x_min) / 2;
             y_center = (y_max + y_min) / 2;
 

@@ -144,6 +144,8 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         int y_min = 144;
         int y_max = 0;
 
+        int screen_center_x = 176/2;
+
         while (x < 176) {
             while (y < 144) {
                 int pixel = bitmap.getPixel(x, y);
@@ -179,7 +181,8 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
             y = 0;
         }
 
-        if (points > 200) {
+        Log.d("POINTS", Integer.toString(points));
+        if (points > 50) {
 //            x_center = all_x / points;
 //            y_center = all_y / points;
             x_center = (x_max + x_min) / 2;
@@ -194,7 +197,8 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
             int direction = 0;
 
             /** MOVEMENT DIRECTIONS BASED ON VALUES FROM CAMERA FEED */
-            if (points < 220) { //original: (points < 7000)
+            Log.d("CurrentState", Integer.toString(CURRENT_STATE));
+            if (points < 2000) { //original: (points < 7000)
                 //forward
                 if(CURRENT_STATE != FORWARD &&  getElapsedTime() >= 500){
                     message = 19;
@@ -202,34 +206,177 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
                     CURRENT_STATE = FORWARD;
                     LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
                     Log.d("MOVE", "forward");
+                }else if(getElapsedTime() >= 500){
+                    if(screen_center_x > x_center){
+                        //turn right
+                        Log.d("MOVE", "right forward turn");
+                        if(screen_center_x - x_center > 70){
+                            //fastest 56
+                            message = 56;
+                            sendMessage(message);
+                        }else if(screen_center_x - x_center > 60){
+                            //2nd fastest
+                            message = 55;
+                            sendMessage(message);
+                        }else if(screen_center_x - x_center > 50){
+                            //3rd fastest
+                            message = 54;
+                            sendMessage(message);
+                        }else if(screen_center_x - x_center > 40){
+                            //middle speed
+                            message = 53;
+                            sendMessage(message);
+                        }else if(screen_center_x - x_center > 30){
+                            //3rd slowest
+                            message = 52;
+                            sendMessage(message);
+                        }else if(screen_center_x - x_center > 20){
+                            //2nd slowest
+                            message = 51;
+                            sendMessage(message);
+                        }else if(screen_center_x - x_center > 10){
+                            //slowest 50
+                            message = 50;
+                            sendMessage(message);
+                        }
+                    }else{
+                        //turn left
+                        Log.d("MOVE", "left forward turn");
+                        if(x_center - screen_center_x > 70){
+                            //fastest 46
+                            message = 46;
+                            sendMessage(message);
+                        }else if(x_center - screen_center_x > 60){
+                            //2nd fastest
+                            message = 45;
+                            sendMessage(message);
+                        }else if(x_center - screen_center_x > 50){
+                            //3rd fastest
+                            message = 44;
+                            sendMessage(message);
+                        }else if(x_center - screen_center_x > 40){
+                            //middle speed
+                            message = 43;
+                            sendMessage(message);
+                        }else if(x_center - screen_center_x > 30){
+                            //3rd slowest
+                            message = 42;
+                            sendMessage(message);
+                        }else if(x_center - screen_center_x > 20){
+                            //2nd slowest
+                            message = 41;
+                            sendMessage(message);
+                        }else if(x_center - screen_center_x > 10){
+                            //slowest 40
+                            message = 40;
+                            sendMessage(message);
+                        }
+                    }
                 }
             }
 
-            if (points > 240 && points < 290 || points == 0) { //original: (points > 7800 && points < 17200)
+            if (points >= 2000 && points < 2500) { //original: (points > 7800 && points < 17200)
                 //stop
                 if(CURRENT_STATE != STOPPED && getElapsedTime() >= 500){
                     message = 59;
                     sendMessage(message);
                     CURRENT_STATE = STOPPED;
                     Log.d("MOVE", "stop");
+                }else{
+                    if(screen_center_x > x_center){
+                        //turn right
+                        Log.d("MOVE", "right stopped turn");
+                        if(screen_center_x - x_center > 70){
+                            //fastest
+                        }else if(screen_center_x - x_center > 60){
+                            //2nd fastest
+                        }else if(screen_center_x - x_center > 50){
+                            //3rd fastest
+                        }else if(screen_center_x - x_center > 40){
+                            //middle speed
+                        }else if(screen_center_x - x_center > 30){
+                            //3rd slowest
+                        }else if(screen_center_x - x_center > 20){
+                            //2nd slowest
+                        }else if(screen_center_x - x_center > 10){
+                            //slowest
+                        }
+                    }else{
+                        //turn left
+                        Log.d("MOVE", "left stopped turn");
+                        if(x_center - screen_center_x > 70){
+                            //fastest
+                        }else if(x_center - screen_center_x > 60){
+                            //2nd fastest
+                        }else if(x_center - screen_center_x > 50){
+                            //3rd fastest
+                        }else if(x_center - screen_center_x > 40){
+                            //middle speed
+                        }else if(x_center - screen_center_x > 30){
+                            //3rd slowest
+                        }else if(x_center - screen_center_x > 20){
+                            //2nd slowest
+                        }else if(x_center - screen_center_x > 10){
+                            //slowest
+                        }
+                    }
                 }
             }
 
-            if (points > 300) { //original: (points < 18000)
+            if (points > 2500) { //original: (points < 18000)
                 //back
                 if(CURRENT_STATE != BACKWARD && getElapsedTime() >= 500){
                     message = 29;
                     sendMessage(message);
                     CURRENT_STATE = BACKWARD;
                     Log.d("MOVE", "back");
+                }else if (CURRENT_STATE == BACKWARD && getElapsedTime() >= 500){
+                    if(screen_center_x > x_center){
+                        //turn right
+                        Log.d("MOVE", "reverse right turn");
+                        if(screen_center_x - x_center > 70){
+                            //fastest
+                        }else if(screen_center_x - x_center > 60){
+                            //2nd fastest
+                        }else if(screen_center_x - x_center > 50){
+                            //3rd fastest
+                        }else if(screen_center_x - x_center > 40){
+                            //middle speed
+                        }else if(screen_center_x - x_center > 30){
+                            //3rd slowest
+                        }else if(screen_center_x - x_center > 20){
+                            //2nd slowest
+                        }else if(screen_center_x - x_center > 10){
+                            //slowest
+                        }
+                    }else{
+                        //turn left
+                        Log.d("MOVE", "reverse left turn");
+                        if(x_center - screen_center_x > 70){
+                            //fastest
+                        }else if(x_center - screen_center_x > 60){
+                            //2nd fastest
+                        }else if(x_center - screen_center_x > 50){
+                            //3rd fastest
+                        }else if(x_center - screen_center_x > 40){
+                            //middle speed
+                        }else if(x_center - screen_center_x > 30){
+                            //3rd slowest
+                        }else if(x_center - screen_center_x > 20){
+                            //2nd slowest
+                        }else if(x_center - screen_center_x > 10){
+                            //slowest
+                        }
+                    }
                 }
             }
 
             Log.d("X/Y", "x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
-            Log.d("POINTS", Integer.toString(points));
+//            Log.d("POINTS", Integer.toString(points));
 
-            points = 0;
+
         }
+        points = 0;
 //        return mRgba;
         Utils.bitmapToMat(bitmap, mRgba);
         return mRgba;
@@ -242,11 +389,11 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
      */
     private void sendMessage(byte message) {
         // Check that we're actually connected before trying anything
-        if (mNXTService.getState() != NXTBluetoothService.STATE_CONNECTED) {
-            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        mNXTService.write(message);
+//        if (mNXTService.getState() != NXTBluetoothService.STATE_CONNECTED) {
+//            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//        mNXTService.write(message);
     }
 
     private long getElapsedTime(){
@@ -255,8 +402,22 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
 
     private boolean checkColorRange(int r, int g, int b){
         if(r > 220){
-            if(g < 40){
-                if(b > 220){
+            if(g < 100){
+                if(b > 175){
+                    return true;
+                }
+            }
+        }
+        if(r > 170){
+            if(g < 5){
+                if(b > 60 && b < 100){
+                    return true;
+                }
+            }
+        }
+        if(r >= 255){
+            if(g < 190 && g > 155){
+                if(b >= 255){
                     return true;
                 }
             }

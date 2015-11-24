@@ -37,12 +37,42 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
 
     private byte message = 0;
 
-    public static final int FORWARD = -1;
-    public static final int BACKWARD = -2;
-    public static final int STOPPED = -3;
+    public static final int FORWARD_RIGHT_FASTEST = -1;
+    public static final int FORWARD_RIGHT_2ND_FASTEST = -2;
+    public static final int FORWARD_RIGHT_3RD_FASTEST = -3;
+    public static final int FORWARD_RIGHT_MIDDLE_SPEED = -4;
+    public static final int FORWARD_RIGHT_3RD_SLOWEST = -5;
+    public static final int FORWARD_RIGHT_2ND_SLOWEST = -6;
+    public static final int FORWARD_RIGHT_SLOWEST = -7;
+    public static final int FORWARD = -8;
+    public static final int FORWARD_LEFT_SLOWEST = -9;
+    public static final int FORWARD_LEFT_2ND_SLOWEST = -10;
+    public static final int FORWARD_LEFT_3RD_SLOWEST = -11;
+    public static final int FORWARD_LEFT_MIDDLE_SPEED = -12;
+    public static final int FORWARD_LEFT_3RD_FASTEST = -13;
+    public static final int FORWARD_LEFT_2ND_FASTEST = -14;
+    public static final int FORWARD_LEFT_FASTEST = -15;
+    public static final int STOPPED_RIGHT_FASTEST = -16;
+    public static final int STOPPED_RIGHT_2ND_FASTEST = -17;
+    public static final int STOPPED_RIGHT_3RD_FASTEST = -18;
+    public static final int STOPPED_RIGHT_MIDDLE_SPEED = -19;
+    public static final int STOPPED_RIGHT_3RD_SLOWEST = -20;
+    public static final int STOPPED_RIGHT_2ND_SLOWEST = -21;
+    public static final int STOPPED_RIGHT_SLOWEST = -22;
+    public static final int STOPPED = -23;
+    public static final int STOPPED_LEFT_SLOWEST = -24;
+    public static final int STOPPED_LEFT_2ND_SLOWEST = -25;
+    public static final int STOPPED_LEFT_3RD_SLOWEST = -26;
+    public static final int STOPPED_LEFT_MIDDLE_SPEED = -27;
+    public static final int STOPPED_LEFT_3RD_FASTEST = -28;
+    public static final int STOPPED_LEFT_2ND_FASTEST = -29;
+    public static final int STOPPED_LEFT_FASTEST = -30;
+    public static final int BACKWARD = -31;
 
-    int CURRENT_STATE = -3;
+
+    int CURRENT_STATE = -17;
     long LAST_TIME_MESSAGE_SENT = System.currentTimeMillis() + 500;
+    public static final int TIME_BETWEEN_MESSAGES = 300;
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -83,9 +113,9 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             nxt = extras.getString("address");
-//            mNXTService = new NXTBluetoothService(mHandler);
-//            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(nxt);
-//            mNXTService.connect(device);
+            mNXTService = new NXTBluetoothService(mHandler);
+            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(nxt);
+            mNXTService.connect(device);
         }
         else{
             Intent i = new Intent(camera_activity.this, Devices_list.class);
@@ -182,7 +212,7 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         }
 
         Log.d("POINTS", Integer.toString(points));
-        if (points > 50) {
+        if (points > 0) {
 //            x_center = all_x / points;
 //            y_center = all_y / points;
             x_center = (x_max + x_min) / 2;
@@ -198,178 +228,419 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
 
             /** MOVEMENT DIRECTIONS BASED ON VALUES FROM CAMERA FEED */
             Log.d("CurrentState", Integer.toString(CURRENT_STATE));
-            if (points < 2000) { //original: (points < 7000)
-                //forward
-                if(CURRENT_STATE != FORWARD &&  getElapsedTime() >= 500){
-                    message = 19;
-                    sendMessage(message);
-                    CURRENT_STATE = FORWARD;
-                    LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
-                    Log.d("MOVE", "forward");
-                }else if(getElapsedTime() >= 500){
+            if (points <= 500) { //original: (points < 7000)
+                if(getElapsedTime() >= TIME_BETWEEN_MESSAGES){
                     if(screen_center_x > x_center){
-                        //turn right
-                        Log.d("MOVE", "right forward turn");
-                        if(screen_center_x - x_center > 70){
-                            //fastest 56
-                            message = 56;
-                            sendMessage(message);
-                        }else if(screen_center_x - x_center > 60){
-                            //2nd fastest
-                            message = 55;
-                            sendMessage(message);
-                        }else if(screen_center_x - x_center > 50){
-                            //3rd fastest
-                            message = 54;
-                            sendMessage(message);
-                        }else if(screen_center_x - x_center > 40){
-                            //middle speed
-                            message = 53;
-                            sendMessage(message);
-                        }else if(screen_center_x - x_center > 30){
-                            //3rd slowest
-                            message = 52;
-                            sendMessage(message);
-                        }else if(screen_center_x - x_center > 20){
-                            //2nd slowest
-                            message = 51;
-                            sendMessage(message);
-                        }else if(screen_center_x - x_center > 10){
-                            //slowest 50
-                            message = 50;
-                            sendMessage(message);
-                        }
-                    }else{
                         //turn left
-                        Log.d("MOVE", "left forward turn");
-                        if(x_center - screen_center_x > 70){
-                            //fastest 46
-                            message = 46;
-                            sendMessage(message);
-                        }else if(x_center - screen_center_x > 60){
-                            //2nd fastest
-                            message = 45;
-                            sendMessage(message);
-                        }else if(x_center - screen_center_x > 50){
-                            //3rd fastest
-                            message = 44;
-                            sendMessage(message);
-                        }else if(x_center - screen_center_x > 40){
-                            //middle speed
-                            message = 43;
-                            sendMessage(message);
-                        }else if(x_center - screen_center_x > 30){
-                            //3rd slowest
-                            message = 42;
-                            sendMessage(message);
-                        }else if(x_center - screen_center_x > 20){
+//                        if(screen_center_x - x_center > 70 && CURRENT_STATE != FORWARD_LEFT_FASTEST){
+//                            //fastest 46
+//                            message = 46;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left forward turn fastest");
+//                            CURRENT_STATE = FORWARD_LEFT_FASTEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(screen_center_x - x_center > 60 && CURRENT_STATE != FORWARD_LEFT_2ND_FASTEST){
+//                            //2nd fastest
+//                            message = 45;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left forward turn 2nd fastest");
+//                            CURRENT_STATE = FORWARD_LEFT_2ND_FASTEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(screen_center_x - x_center > 50 && CURRENT_STATE != FORWARD_LEFT_3RD_FASTEST){
+//                            //3rd fastest
+//                            message = 44;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left forward turn 3rd fastest");
+//                            CURRENT_STATE = FORWARD_LEFT_3RD_FASTEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(screen_center_x - x_center > 40 && CURRENT_STATE != FORWARD_LEFT_MIDDLE_SPEED){
+//                            //middle speed
+//                            message = 43;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left forward turn middle speed");
+//                            CURRENT_STATE = FORWARD_LEFT_MIDDLE_SPEED;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(screen_center_x - x_center > 30 && CURRENT_STATE != FORWARD_LEFT_3RD_SLOWEST){
+//                            //3rd slowest
+//                            message = 42;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left forward turn 3rd slowest");
+//                            CURRENT_STATE = FORWARD_LEFT_3RD_SLOWEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else
+                    if(screen_center_x - x_center > 20 && CURRENT_STATE != FORWARD_LEFT_2ND_SLOWEST){
                             //2nd slowest
                             message = 41;
                             sendMessage(message);
-                        }else if(x_center - screen_center_x > 10){
+                            Log.d("MOVE", "left forward turn 2nd slowest");
+                            CURRENT_STATE = FORWARD_LEFT_2ND_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(screen_center_x - x_center > 10 && CURRENT_STATE != FORWARD_LEFT_SLOWEST){
                             //slowest 40
                             message = 40;
                             sendMessage(message);
+                            Log.d("MOVE", "left forward turn slowest");
+                            CURRENT_STATE = FORWARD_LEFT_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(CURRENT_STATE != FORWARD){
+                            //forward no turn
+                            message = 19;
+                            sendMessage(message);
+                            CURRENT_STATE = FORWARD;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                            Log.d("MOVE", "forward");
+                        }
+                    }else{
+                        //turn right
+//                        if(x_center - screen_center_x > 70 && CURRENT_STATE != FORWARD_RIGHT_FASTEST){
+//                            //fastest 56
+//                            message = 56;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right forward turn fastest");
+//                            CURRENT_STATE = FORWARD_RIGHT_FASTEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(x_center - screen_center_x > 60 && CURRENT_STATE != FORWARD_RIGHT_2ND_FASTEST){
+//                            //2nd fastest
+//                            message = 55;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right forward turn 2nd fastest");
+//                            CURRENT_STATE = FORWARD_RIGHT_2ND_FASTEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(x_center - screen_center_x > 50 && CURRENT_STATE != FORWARD_RIGHT_3RD_FASTEST){
+//                            //3rd fastest
+//                            message = 54;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right forward turn 3rd fastest");
+//                            CURRENT_STATE = FORWARD_RIGHT_3RD_FASTEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(x_center - screen_center_x > 40 && CURRENT_STATE != FORWARD_RIGHT_MIDDLE_SPEED){
+//                            //middle speed
+//                            message = 53;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right forward turn middle speed");
+//                            CURRENT_STATE = FORWARD_RIGHT_MIDDLE_SPEED;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else if(x_center - screen_center_x > 30 && CURRENT_STATE != FORWARD_RIGHT_3RD_SLOWEST){
+//                            //3rd slowest
+//                            message = 52;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right forward turn 3rd slowest");
+//                            CURRENT_STATE = FORWARD_RIGHT_3RD_SLOWEST;
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        }else
+                        if(x_center - screen_center_x > 20 && CURRENT_STATE != FORWARD_RIGHT_2ND_SLOWEST){
+                            //2nd slowest
+                            message = 51;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn 2nd slowest");
+                            CURRENT_STATE = FORWARD_RIGHT_2ND_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(x_center - screen_center_x > 10 && CURRENT_STATE != FORWARD_RIGHT_SLOWEST){
+                            //slowest 50
+                            message = 50;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn slowest");
+                            CURRENT_STATE = FORWARD_RIGHT_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(CURRENT_STATE != FORWARD){
+                            //forward no turn
+                            message = 19;
+                            sendMessage(message);
+                            CURRENT_STATE = FORWARD;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                            Log.d("MOVE", "forward");
+                        }
+                    }
+                }
+            }
+            if (points < 800 && points > 500) { //original: (points < 7000)
+                if(getElapsedTime() >= TIME_BETWEEN_MESSAGES){
+                    if(screen_center_x > x_center){
+                        //turn left
+                        if(screen_center_x - x_center > 70 && CURRENT_STATE != FORWARD_LEFT_FASTEST){
+                            //fastest 46
+                            message = 46;
+                            sendMessage(message);
+                            Log.d("MOVE", "left forward turn fastest");
+                            CURRENT_STATE = FORWARD_LEFT_FASTEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(screen_center_x - x_center > 60 && CURRENT_STATE != FORWARD_LEFT_2ND_FASTEST){
+                            //2nd fastest
+                            message = 45;
+                            sendMessage(message);
+                            Log.d("MOVE", "left forward turn 2nd fastest");
+                            CURRENT_STATE = FORWARD_LEFT_2ND_FASTEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(screen_center_x - x_center > 50 && CURRENT_STATE != FORWARD_LEFT_3RD_FASTEST){
+                            //3rd fastest
+                            message = 44;
+                            sendMessage(message);
+                            Log.d("MOVE", "left forward turn 3rd fastest");
+                            CURRENT_STATE = FORWARD_LEFT_3RD_FASTEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(screen_center_x - x_center > 40 && CURRENT_STATE != FORWARD_LEFT_MIDDLE_SPEED){
+                            //middle speed
+                            message = 43;
+                            sendMessage(message);
+                            Log.d("MOVE", "left forward turn middle speed");
+                            CURRENT_STATE = FORWARD_LEFT_MIDDLE_SPEED;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(screen_center_x - x_center > 30 && CURRENT_STATE != FORWARD_LEFT_3RD_SLOWEST){
+                            //3rd slowest
+                            message = 42;
+                            sendMessage(message);
+                            Log.d("MOVE", "left forward turn 3rd slowest");
+                            CURRENT_STATE = FORWARD_LEFT_3RD_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(screen_center_x - x_center > 20 && CURRENT_STATE != FORWARD_LEFT_2ND_SLOWEST){
+                            //2nd slowest
+                            message = 41;
+                            sendMessage(message);
+                            Log.d("MOVE", "left forward turn 2nd slowest");
+                            CURRENT_STATE = FORWARD_LEFT_2ND_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(screen_center_x - x_center > 10 && CURRENT_STATE != FORWARD_LEFT_SLOWEST){
+                            //slowest 40
+                            message = 40;
+                            sendMessage(message);
+                            Log.d("MOVE", "left forward turn slowest");
+                            CURRENT_STATE = FORWARD_LEFT_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(CURRENT_STATE != FORWARD){
+                            //forward no turn
+                            message = 19;
+                            sendMessage(message);
+                            CURRENT_STATE = FORWARD;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                            Log.d("MOVE", "forward");
+                        }
+                    }else{
+                        //turn right
+                        if(x_center - screen_center_x > 70 && CURRENT_STATE != FORWARD_RIGHT_FASTEST){
+                            //fastest 56
+                            message = 56;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn fastest");
+                            CURRENT_STATE = FORWARD_RIGHT_FASTEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(x_center - screen_center_x > 60 && CURRENT_STATE != FORWARD_RIGHT_2ND_FASTEST){
+                            //2nd fastest
+                            message = 55;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn 2nd fastest");
+                            CURRENT_STATE = FORWARD_RIGHT_2ND_FASTEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(x_center - screen_center_x > 50 && CURRENT_STATE != FORWARD_RIGHT_3RD_FASTEST){
+                            //3rd fastest
+                            message = 54;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn 3rd fastest");
+                            CURRENT_STATE = FORWARD_RIGHT_3RD_FASTEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(x_center - screen_center_x > 40 && CURRENT_STATE != FORWARD_RIGHT_MIDDLE_SPEED){
+                            //middle speed
+                            message = 53;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn middle speed");
+                            CURRENT_STATE = FORWARD_RIGHT_MIDDLE_SPEED;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(x_center - screen_center_x > 30 && CURRENT_STATE != FORWARD_RIGHT_3RD_SLOWEST){
+                            //3rd slowest
+                            message = 52;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn 3rd slowest");
+                            CURRENT_STATE = FORWARD_RIGHT_3RD_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(x_center - screen_center_x > 20 && CURRENT_STATE != FORWARD_RIGHT_2ND_SLOWEST){
+                            //2nd slowest
+                            message = 51;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn 2nd slowest");
+                            CURRENT_STATE = FORWARD_RIGHT_2ND_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(x_center - screen_center_x > 10 && CURRENT_STATE != FORWARD_RIGHT_SLOWEST){
+                            //slowest 50
+                            message = 50;
+                            sendMessage(message);
+                            Log.d("MOVE", "right forward turn slowest");
+                            CURRENT_STATE = FORWARD_RIGHT_SLOWEST;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }else if(CURRENT_STATE != FORWARD){
+                            //forward no turn
+                            message = 19;
+                            sendMessage(message);
+                            CURRENT_STATE = FORWARD;
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                            Log.d("MOVE", "forward");
                         }
                     }
                 }
             }
 
-            if (points >= 2000 && points < 2500) { //original: (points > 7800 && points < 17200)
+            if (points >= 800) { //original: (points > 7800 && points < 17200)
                 //stop
-                if(CURRENT_STATE != STOPPED && getElapsedTime() >= 500){
-                    message = 59;
-                    sendMessage(message);
-                    CURRENT_STATE = STOPPED;
-                    Log.d("MOVE", "stop");
-                }else{
+                if(getElapsedTime() >= TIME_BETWEEN_MESSAGES){
                     if(screen_center_x > x_center){
-                        //turn right
-                        Log.d("MOVE", "right stopped turn");
-                        if(screen_center_x - x_center > 70){
-                            //fastest
-                        }else if(screen_center_x - x_center > 60){
-                            //2nd fastest
-                        }else if(screen_center_x - x_center > 50){
-                            //3rd fastest
-                        }else if(screen_center_x - x_center > 40){
-                            //middle speed
-                        }else if(screen_center_x - x_center > 30){
-                            //3rd slowest
-                        }else if(screen_center_x - x_center > 20){
-                            //2nd slowest
-                        }else if(screen_center_x - x_center > 10){
-                            //slowest
-                        }
-                    }else{
                         //turn left
                         Log.d("MOVE", "left stopped turn");
-                        if(x_center - screen_center_x > 70){
-                            //fastest
-                        }else if(x_center - screen_center_x > 60){
-                            //2nd fastest
-                        }else if(x_center - screen_center_x > 50){
-                            //3rd fastest
-                        }else if(x_center - screen_center_x > 40){
-                            //middle speed
-                        }else if(x_center - screen_center_x > 30){
+//                        if(screen_center_x - x_center > 70 && CURRENT_STATE != STOPPED_LEFT_FASTEST){
+//                            //fastest
+//                            message = 36;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left stopped turn fastest");
+//                            CURRENT_STATE = STOPPED_LEFT_FASTEST;
+//                        }else if(screen_center_x - x_center > 60 && CURRENT_STATE != STOPPED_LEFT_2ND_FASTEST){
+//                            //2nd fastest
+//                            message = 35;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left stopped turn 2nd fastest");
+//                            CURRENT_STATE = STOPPED_LEFT_2ND_FASTEST;
+//                        }else if(screen_center_x - x_center > 50 && CURRENT_STATE != STOPPED_LEFT_3RD_FASTEST){
+//                            //3rd fastest
+//                            message = 34;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left stopped turn 3rd fastest");
+//                            CURRENT_STATE = STOPPED_LEFT_3RD_FASTEST;
+//                        }else if(screen_center_x - x_center > 40 && CURRENT_STATE != STOPPED_LEFT_MIDDLE_SPEED){
+//                            //middle speed
+//                            message = 33;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left stopped turn middle speed");
+//                            CURRENT_STATE = STOPPED_LEFT_MIDDLE_SPEED;
+//                        }else
+                        if(screen_center_x - x_center > 40 && CURRENT_STATE != STOPPED_LEFT_3RD_SLOWEST){
                             //3rd slowest
-                        }else if(x_center - screen_center_x > 20){
-                            //2nd slowest
-                        }else if(x_center - screen_center_x > 10){
+                            message = 32;
+                            sendMessage(message);
+                            Log.d("MOVE", "left stopped turn 3rd slowest");
+                            CURRENT_STATE = STOPPED_LEFT_3RD_SLOWEST;
+//                        }else if(screen_center_x - x_center > 20 && CURRENT_STATE != STOPPED_RIGHT_2ND_SLOWEST){
+//                            //2nd slowest
+//                            message = 31;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "left stopped turn 2nd slowest");
+//                            CURRENT_STATE = STOPPED_LEFT_2ND_SLOWEST;
+                        }else if(screen_center_x - x_center > 20 && CURRENT_STATE != STOPPED_LEFT_SLOWEST){
                             //slowest
+                            message = 30;
+                            sendMessage(message);
+                            Log.d("MOVE", "left stopped turn slowest");
+                            CURRENT_STATE = STOPPED_LEFT_SLOWEST;
+                        }else if(CURRENT_STATE != STOPPED){
+                            message = 59;
+                            sendMessage(message);
+                            CURRENT_STATE = STOPPED;
+                            Log.d("MOVE", "stop");
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+                        }
+                    }else{
+                        //turn right
+//                        if(x_center - screen_center_x > 70 && CURRENT_STATE != STOPPED_RIGHT_FASTEST){
+//                            //fastest
+//                            message = 66;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right stopped turn fastest");
+//                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                            CURRENT_STATE = STOPPED_RIGHT_FASTEST;
+//                        }else if(x_center - screen_center_x > 60 && CURRENT_STATE != STOPPED_RIGHT_2ND_FASTEST){
+//                            //2nd fastest
+//                            message = 65;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right stopped turn 2nd fastest");
+//                            CURRENT_STATE = STOPPED_RIGHT_2ND_FASTEST;
+//                        }else if(x_center - screen_center_x > 50 && CURRENT_STATE != STOPPED_RIGHT_3RD_FASTEST){
+//                            //3rd fastest
+//                            message = 64;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right stopped turn 3rd fastest");
+//                            CURRENT_STATE = STOPPED_RIGHT_3RD_FASTEST;
+//                        }else if(x_center - screen_center_x > 40 && CURRENT_STATE != STOPPED_RIGHT_MIDDLE_SPEED){
+//                            //middle speed
+//                            message = 63;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right stopped turn middle speed");
+//                            CURRENT_STATE = STOPPED_RIGHT_MIDDLE_SPEED;
+//                        }else
+                        if(x_center - screen_center_x > 30 && CURRENT_STATE != STOPPED_RIGHT_3RD_SLOWEST){
+                            //3rd slowest
+                            message = 62;
+                            sendMessage(message);
+                            Log.d("MOVE", "right stopped turn 3rd slowest");
+                            CURRENT_STATE = STOPPED_RIGHT_3RD_SLOWEST;
+//                        }else if(x_center - screen_center_x > 20 && CURRENT_STATE != STOPPED_RIGHT_2ND_SLOWEST){
+//                            //2nd slowest
+//                            message = 61;
+//                            sendMessage(message);
+//                            Log.d("MOVE", "right stopped turn 2nd slowest");
+//                            CURRENT_STATE = STOPPED_RIGHT_2ND_SLOWEST;
+                        }else if(x_center - screen_center_x > 20 && CURRENT_STATE != STOPPED_RIGHT_SLOWEST){
+                            //slowest
+                            message = 60;
+                            sendMessage(message);
+                            Log.d("MOVE", "right stopped turn slowest");
+                            CURRENT_STATE = STOPPED_RIGHT_SLOWEST;
+                        }else if(CURRENT_STATE != STOPPED){
+                            //stop
+                            message = 59;
+                            sendMessage(message);
+                            CURRENT_STATE = STOPPED;
+                            Log.d("MOVE", "stop");
+                            LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
                         }
                     }
                 }
             }
 
-            if (points > 2500) { //original: (points < 18000)
-                //back
-                if(CURRENT_STATE != BACKWARD && getElapsedTime() >= 500){
-                    message = 29;
-                    sendMessage(message);
-                    CURRENT_STATE = BACKWARD;
-                    Log.d("MOVE", "back");
-                }else if (CURRENT_STATE == BACKWARD && getElapsedTime() >= 500){
-                    if(screen_center_x > x_center){
-                        //turn right
-                        Log.d("MOVE", "reverse right turn");
-                        if(screen_center_x - x_center > 70){
-                            //fastest
-                        }else if(screen_center_x - x_center > 60){
-                            //2nd fastest
-                        }else if(screen_center_x - x_center > 50){
-                            //3rd fastest
-                        }else if(screen_center_x - x_center > 40){
-                            //middle speed
-                        }else if(screen_center_x - x_center > 30){
-                            //3rd slowest
-                        }else if(screen_center_x - x_center > 20){
-                            //2nd slowest
-                        }else if(screen_center_x - x_center > 10){
-                            //slowest
-                        }
-                    }else{
-                        //turn left
-                        Log.d("MOVE", "reverse left turn");
-                        if(x_center - screen_center_x > 70){
-                            //fastest
-                        }else if(x_center - screen_center_x > 60){
-                            //2nd fastest
-                        }else if(x_center - screen_center_x > 50){
-                            //3rd fastest
-                        }else if(x_center - screen_center_x > 40){
-                            //middle speed
-                        }else if(x_center - screen_center_x > 30){
-                            //3rd slowest
-                        }else if(x_center - screen_center_x > 20){
-                            //2nd slowest
-                        }else if(x_center - screen_center_x > 10){
-                            //slowest
-                        }
-                    }
-                }
-            }
+//            if (points >= 2700) { //original: (points < 18000)
+//                //back
+//                if(CURRENT_STATE != BACKWARD && getElapsedTime() >= TIME_BETWEEN_MESSAGES){
+//                    message = 29;
+//                    sendMessage(message);
+//                    CURRENT_STATE = BACKWARD;
+//                    Log.d("MOVE", "back");
+//                    LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                }else if (CURRENT_STATE == BACKWARD && getElapsedTime() >= TIME_BETWEEN_MESSAGES){
+//                    if(screen_center_x > x_center){
+//                        //turn right
+//                        Log.d("MOVE", "reverse right turn");
+//                        LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        if(screen_center_x - x_center > 70){
+//                            //fastest
+//                        }else if(screen_center_x - x_center > 60){
+//                            //2nd fastest
+//                        }else if(screen_center_x - x_center > 50){
+//                            //3rd fastest
+//                        }else if(screen_center_x - x_center > 40){
+//                            //middle speed
+//                        }else if(screen_center_x - x_center > 30){
+//                            //3rd slowest
+//                        }else if(screen_center_x - x_center > 20){
+//                            //2nd slowest
+//                        }else if(screen_center_x - x_center > 10){
+//                            //slowest
+//                        }
+//                    }else{
+//                        //turn left
+//                        Log.d("MOVE", "reverse left turn");
+//                        LAST_TIME_MESSAGE_SENT = System.currentTimeMillis();
+//                        if(x_center - screen_center_x > 70){
+//                            //fastest
+//                        }else if(x_center - screen_center_x > 60){
+//                            //2nd fastest
+//                        }else if(x_center - screen_center_x > 50){
+//                            //3rd fastest
+//                        }else if(x_center - screen_center_x > 40){
+//                            //middle speed
+//                        }else if(x_center - screen_center_x > 30){
+//                            //3rd slowest
+//                        }else if(x_center - screen_center_x > 20){
+//                            //2nd slowest
+//                        }else if(x_center - screen_center_x > 10){
+//                            //slowest
+//                        }
+//                    }
+//                }
+//            }
 
             Log.d("X/Y", "x" + Float.toString(x_center) + "y" + Integer.toString(y_center) + direction);
 //            Log.d("POINTS", Integer.toString(points));
@@ -389,15 +660,15 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
      */
     private void sendMessage(byte message) {
         // Check that we're actually connected before trying anything
-//        if (mNXTService.getState() != NXTBluetoothService.STATE_CONNECTED) {
-//            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//        mNXTService.write(message);
+        if (mNXTService.getState() != NXTBluetoothService.STATE_CONNECTED) {
+            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mNXTService.write(message);
     }
 
     private long getElapsedTime(){
-        return LAST_TIME_MESSAGE_SENT - System.currentTimeMillis();
+        return System.currentTimeMillis() - LAST_TIME_MESSAGE_SENT;
     }
 
     private boolean checkColorRange(int r, int g, int b){
@@ -459,7 +730,7 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
                      */
                     switch (message) {
                         default:
-                            Toast.makeText(camera_activity.this, "Message received int = " + Integer.toString(message), Toast.LENGTH_LONG).show();
+                            //Toast.makeText(camera_activity.this, "Message received int = " + Integer.toString(message), Toast.LENGTH_LONG).show();
                     }
                     break;
 

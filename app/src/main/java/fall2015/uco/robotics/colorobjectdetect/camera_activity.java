@@ -198,7 +198,6 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
                     if(x_max < x){ x_max = x; }
                     if(y_min > y){ y_min = y; }
                     if(y_max < y){ y_max = y; }
-                    //bitmap.setPixel(x, y, Color.CYAN);
                 }else{
                     if(x != (176/2) && y != (144/2)){
                         bitmap.setPixel(x, y, Color.BLACK);
@@ -212,9 +211,7 @@ public class camera_activity extends Activity implements CvCameraViewListener2 {
         }
 
         Log.d("POINTS", Integer.toString(points));
-        if (points > 0) {
-//            x_center = all_x / points;
-//            y_center = all_y / points;
+        if (points > 5) {
             x_center = (x_max + x_min) / 2;
             y_center = (y_max + y_min) / 2;
 
